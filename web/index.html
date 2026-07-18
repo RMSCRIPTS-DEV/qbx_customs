@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RM-CUSTOMS</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app" class="app" aria-hidden="true">
+    <aside id="panel" class="customs-panel">
+      <header class="customs-panel__header">
+        <div class="customs-panel__header-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </div>
+        <div class="customs-panel__header-text">
+          <h2 id="title" class="customs-panel__title">RM-CUSTOMS</h2>
+          <p id="subtitle" class="customs-panel__subtitle">Customize your vehicle</p>
+        </div>
+        <div class="customs-panel__keyhint" title="Back / Close">ESC</div>
+      </header>
+
+      <div id="toolbar" class="customs-panel__toolbar hidden">
+        <div class="customs-panel__back-badge">
+          <span class="customs-panel__kbd">BACKSPACE</span>
+          <span>Back</span>
+        </div>
+        <span id="crumb" class="customs-panel__crumb"></span>
+      </div>
+
+      <div id="list" class="customs-panel__list"></div>
+
+      <footer class="customs-panel__footer">
+        <div class="customs-panel__keys">
+          <span><i class="customs-panel__kbd">W/S</i> Move</span>
+          <span><i class="customs-panel__kbd">A/D</i> Change</span>
+          <span><i class="customs-panel__kbd">ENTER</i> Select</span>
+        </div>
+      </footer>
+    </aside>
+
+    <div id="helpBar" class="help-bar" aria-hidden="true">
+      <div id="helpPrompts" class="help-bar__prompts"></div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

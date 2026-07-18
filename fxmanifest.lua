@@ -1,0 +1,44 @@
+fx_version 'cerulean'
+game 'gta5'
+
+author 'Jorn#0008'
+description 'qbx_customs'
+repository 'https://github.com/Qbox-project/qbx_customs'
+version '0.1.1'
+
+ox_lib 'locale'
+
+shared_script '@ox_lib/init.lua'
+
+ui_page 'web/index.html'
+
+client_scripts {
+    '@qbx_core/modules/playerdata.lua',
+    '@qbx_core/modules/lib.lua',
+    'client/utils.lua',
+    'client/menus/main.lua',
+    'client/zones.lua',
+}
+
+server_scripts {
+    '@oxmysql/lib/MySQL.lua',
+    'server/main.lua'
+}
+
+files {
+    'locales/*.json',
+    'config/*.lua',
+    'client/**/*.lua',
+    'web/index.html',
+    'web/style.css',
+    'web/app.js',
+    'web/fonts/*.ttf',
+    'carcols_gen9.meta',
+    'carmodcols_gen9.meta',
+}
+
+data_file 'CARCOLS_GEN9_FILE' 'carcols_gen9.meta'
+data_file 'CARMODCOLS_GEN9_FILE' 'carmodcols_gen9.meta'
+
+lua54 'yes'
+use_experimental_fxv2_oal 'yes'
