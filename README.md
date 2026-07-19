@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://rm-scripts.dev/">
-    <img src="https://i.imgur.com/J2qiRpn.png" alt="qbx_customs — RM-SCRIPTS" width="720" />
+    <img src="https://r2.fivemanage.com/aKdhnWQAzohu8VO3pwbkC/download.png" alt="qbx_customs — RM-SCRIPTS" width="720" />
   </a>
 </p>
 
