@@ -1,4 +1,5 @@
 local ui = {}
+local pending = require('client.pending')
 
 local visible = false
 local currentOptions = {}
@@ -36,6 +37,7 @@ local function serializeOptions(options)
             icon = option.icon,
             values = option.values,
             selected = selected,
+            meta = option.meta,
         }
     end
     return items
@@ -126,7 +128,6 @@ function ui.show(view)
     visible = true
     selectedIndex = view.activeIndex or 1
     clampSelection()
-    -- Display-only NUI (no cursor) — controls handled in Lua like ox_lib
     SetNuiFocus(false, false)
     send('setVisible', true)
     sendView()
@@ -184,19 +185,33 @@ function ui.canGoBack()
 end
 
 function ui.goBack()
-    ui.restoreAll()
     local previous = popView()
     if not previous then
         return false
     end
 
     if previous.rebuild then
+        local isRoot = previous.id == 'main' or previous.id == 'checkout'
+        if not isRoot then
+            pending.restoreBaseline()
+        end
+
         previous = previous.rebuild()
         if not previous then
             return ui.goBack()
         end
+
         stack[#stack] = previous
         currentView = previous
+
+        if isRoot then
+            pending.resetVisual()
+        else
+            pending.reapply()
+            pending.syncOptions(previous.options or {})
+        end
+    else
+        pending.resetVisual()
     end
 
     currentOptions = previous.options or {}

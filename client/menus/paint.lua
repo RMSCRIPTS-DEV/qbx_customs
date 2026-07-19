@@ -24,6 +24,7 @@ return function(primary)
             type = 'item',
             icon = 'paint',
             id = category,
+            cartKey = ('%s:%s'):format(primary and 'primary' or 'secondary', category),
             payType = 'colors',
             label = category,
             price = ('%s%s'):format(config.currency, sharedConfig.prices['colors']),
@@ -31,10 +32,11 @@ return function(primary)
             selected = selectedIndex,
             defaultIndex = selectedIndex,
             set = function(index)
+                local prim, sec = GetVehicleColours(vehicle)
                 if primary then
-                    SetVehicleColours(vehicle, ids[index], originalSecondary)
+                    SetVehicleColours(vehicle, ids[index], sec)
                 else
-                    SetVehicleColours(vehicle, originalPrimary, ids[index])
+                    SetVehicleColours(vehicle, prim, ids[index])
                 end
                 return ids[index] == current, locale('menus.general.applied', labels[index])
             end,

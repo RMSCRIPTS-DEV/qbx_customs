@@ -2,14 +2,19 @@
     "notifications": {
         "success": {
             "repaired": "Vehicle repaired!",
-            "paid": "You paid $%s from your bank account"
+            "paid": "You paid $%s from your bank account",
+            "cartPaid": "You paid %s for your upgrades"
         },
         "error": {
             "money": "You don't have enough money!",
-            "alreadyInstalled": "You already have this mod installed"
+            "alreadyInstalled": "You already have this mod installed",
+            "emptyCart": "You have no upgrades to pay for"
         },
         "inform": {
-            "carNoPerformanceUpgrades": "This vehicle has no performance upgrades available"
+            "carNoPerformanceUpgrades": "This vehicle has no performance upgrades available",
+            "staged": "Upgrade selected — pay from the main menu",
+            "selected": "%s locked in — pay from main menu",
+            "deselected": "%s unlocked (stock)"
         },
         "props": {
             "installTitle": "RM-CUSTOMS"
@@ -33,7 +38,15 @@
             "performance": "Performance",
             "parts": "Cosmetics - Parts",
             "colors": "Cosmetics - Colors",
-            "extras": "Extras"
+            "extras": "Extras",
+            "payUpgrades": "Pay for upgrades",
+            "payUpgradesMeta": "%s selected — press ENTER to pay"
+        },
+        "checkout": {
+            "title": "Checkout",
+            "subtitle": "Total %s — choose how to pay",
+            "cash": "Cash",
+            "card": "Card"
         },
         "colors": {
             "primary": "Paint primary",

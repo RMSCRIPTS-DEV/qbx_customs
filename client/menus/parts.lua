@@ -12,7 +12,7 @@ local function plateIndex()
 
     return {
         type = 'item',
-        icon = 'parts',
+        icon = 'plate',
         id = 'plate_index',
         payType = 'cosmetic',
         label = locale('menus.options.plateIndex.title'),
@@ -56,7 +56,7 @@ local function buildOptions()
 
         options[#options + 1] = {
             type = 'item',
-            icon = 'parts',
+            icon = mod.icon or 'parts',
             id = mod.id,
             payType = 'cosmetic',
             label = mod.label,

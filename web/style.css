@@ -281,6 +281,10 @@ html, body {
   color: #ef6969;
 }
 
+.customs-item__buy-hint--checkout {
+  border-color: var(--rm-border);
+}
+
 .customs-item__body {
   display: flex;
   align-items: center;
@@ -373,8 +377,9 @@ html, body {
 
 .customs-item__variant-count {
   color: var(--rm-text);
-  font-size: 16px;
+  font-size: 11px;
   font-weight: 700;
+  letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
 }
 

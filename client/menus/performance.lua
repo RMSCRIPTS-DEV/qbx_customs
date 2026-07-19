@@ -46,7 +46,7 @@ local function buildOptions()
 
         options[#options + 1] = {
             type = 'item',
-            icon = 'performance',
+            icon = mod.icon or 'performance',
             id = mod.id,
             payType = mod.id,
             label = mod.label,
@@ -73,7 +73,7 @@ local function buildOptions()
     if GetVehicleClass(vehicle) ~= VehicleClass.Cycles then
         options[#options + 1] = {
             type = 'item',
-            icon = 'performance',
+            icon = 'turbo',
             id = 18,
             payType = 18,
             label = locale('menus.performance.turbo'),

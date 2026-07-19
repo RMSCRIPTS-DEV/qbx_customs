@@ -7,6 +7,7 @@ local startDragCam = dragcam.startDragCam
 local stopDragCam = dragcam.stopDragCam
 local config = require 'config.client'
 local ui = require('client.ui')
+local pending = require('client.pending')
 
 local function buildMainOptions()
     if GetVehicleBodyHealth(vehicle) < 1000.0 then
@@ -48,6 +49,16 @@ local function buildMainOptions()
         }
     end
 
+    if pending.hasEntries() then
+        options[#options + 1] = {
+            type = 'checkout',
+            icon = 'checkout',
+            label = locale('menus.main.payUpgrades'),
+            price = pending.totalLabel(),
+            meta = locale('menus.main.payUpgradesMeta', pending.count()),
+        }
+    end
+
     return options
 end
 
@@ -61,13 +72,46 @@ local function buildMainView()
     }
 end
 
+local function buildCheckoutView()
+    return {
+        id = 'checkout',
+        title = locale('menus.checkout.title'),
+        subtitle = locale('menus.checkout.subtitle', pending.totalLabel()),
+        options = {
+            {
+                type = 'pay',
+                icon = 'cash',
+                label = locale('menus.checkout.cash'),
+                price = pending.totalLabel(),
+                moneyType = 'cash',
+            },
+            {
+                type = 'pay',
+                icon = 'card',
+                label = locale('menus.checkout.card'),
+                price = pending.totalLabel(),
+                moneyType = 'bank',
+            },
+        },
+        rebuild = buildCheckoutView,
+    }
+end
+
 local function navSound()
     PlaySoundFrontend(-1, 'NAV_UP_DOWN', 'HUD_FRONTEND_DEFAULT_SOUNDSET', true)
 end
 
+local function upgradeSound()
+    PlaySoundFrontend(-1, 'WEAPON_PURCHASE', 'HUD_AMMO_SHOP_SOUNDSET', true)
+end
+
 local function closeMenu()
     if not ui.isOpen() then return end
-    ui.restoreAll()
+
+    -- Discard unpaid previews so free upgrades cannot stick
+    pending.restoreBaseline()
+    pending.clear()
+
     ui.hide()
     inMenu = false
     stopDragCam()
@@ -93,6 +137,7 @@ local function repair()
         local fuelLevel = GetVehicleFuelLevel(vehicle)
         SetVehicleFixed(vehicle)
         SetVehicleFuelLevel(vehicle, fuelLevel)
+        pending.start()
     else
         exports.qbx_core:Notify(locale('notifications.error.money'), 'error')
     end
@@ -103,7 +148,7 @@ end
 local function openSubmenu(option)
     if not option?.submenu then return end
 
-    ui.restoreAll()
+    pending.restoreBaseline()
 
     local builder = require(option.submenu)
     local view
@@ -114,10 +159,13 @@ local function openSubmenu(option)
     end
 
     if not view then
+        pending.reapply()
         ui.refresh(buildMainView())
         return
     end
 
+    pending.reapply()
+    pending.syncOptions(view.options or {})
     ui.show(view)
 end
 
@@ -133,11 +181,25 @@ local function changeValue(delta)
     if nextIndex < 1 then nextIndex = len end
     if nextIndex > len then nextIndex = 1 end
 
+    -- A/D only previews — ENTER locks the choice in
     option.selected = nextIndex
     option.set(nextIndex)
     option.price = ui.priceForSelection(option, nextIndex)
     navSound()
     ui.updateSelectedItem()
+end
+
+local function lockInSelection(option)
+    local selected = option.selected or option.defaultIndex or 1
+    pending.upsert(option, selected)
+    upgradeSound()
+
+    local valueLabel = option.values and option.values[selected] or option.label
+    if selected == (option.defaultIndex or 1) then
+        exports.qbx_core:Notify(locale('notifications.inform.deselected', option.label), 'inform')
+    else
+        exports.qbx_core:Notify(locale('notifications.inform.selected', valueLabel), 'success')
+    end
 end
 
 local function confirmSelection()
@@ -155,30 +217,38 @@ local function confirmSelection()
         return
     end
 
-    local selected = option.selected or option.defaultIndex or 1
-    option.selected = selected
-
-    for _, v in ipairs(ui.getOptions()) do
-        if v.restore then v.restore() end
+    if option.type == 'checkout' then
+        navSound()
+        ui.show(buildCheckoutView())
+        return
     end
 
-    if option.onPurchaseSideEffects then
-        option.onPurchaseSideEffects()
+    if option.type == 'pay' then
+        navSound()
+        local totalLabel = pending.totalLabel()
+        local ok = openedWithExports or lib.callback.await(
+            'qbx_customs:server:payCart',
+            false,
+            pending.itemsForServer(),
+            option.moneyType
+        )
+        if ok then
+            pending.commit()
+            exports.qbx_core:Notify(locale('notifications.success.cartPaid', totalLabel), 'success')
+            qbx.playAudio({
+                audioName = 'PICK_UP',
+                audioRef = 'HUD_FRONTEND_DEFAULT_SOUNDSET'
+            })
+            ui.replace(buildMainView())
+        else
+            exports.qbx_core:Notify(locale('notifications.error.money'), 'error')
+        end
+        return
     end
 
-    local duplicate, desc = option.set(selected)
-    local success = InstallMod(duplicate, option.payType or 'cosmetic', {
-        description = desc,
-        icon = option.payType == 'colors' and 'fa-solid fa-spray-can' or nil,
-    }, selected)
-
-    if not success and option.restore then
-        option.restore()
-    end
-
-    local view = ui.getView()
-    if view?.rebuild then
-        ui.refresh(view.rebuild())
+    -- Mod rows: ENTER locks in the previewed choice (no payment yet)
+    if option.values and option.set then
+        lockInSelection(option)
     end
 end
 
@@ -198,14 +268,13 @@ local function startInputLoop()
         while inMenu do
             Wait(0)
 
-            DisableControlAction(0, 71, true)  -- accel
-            DisableControlAction(0, 72, true)  -- brake
-            DisableControlAction(0, 75, true)  -- exit vehicle
-            DisableControlAction(0, 106, true) -- vehicle mouse
-            DisableControlAction(0, 200, true) -- pause
+            DisableControlAction(0, 71, true)
+            DisableControlAction(0, 72, true)
+            DisableControlAction(0, 75, true)
+            DisableControlAction(0, 106, true)
+            DisableControlAction(0, 200, true)
             DisablePlayerFiring(cache.playerId, true)
 
-            -- Movement / menu keys
             for _, control in ipairs({ 32, 33, 34, 35, 172, 173, 174, 175, 201, 202, 177, 194 }) do
                 DisableControlAction(0, control, true)
             end
@@ -215,29 +284,25 @@ local function startInputLoop()
 
             if not ui.isOpen() then goto continue end
 
-            -- W / Up
             if IsDisabledControlJustPressed(0, 32) or IsDisabledControlJustPressed(0, 172) then
+                pending.revertPreview(ui.getOption())
                 navSound()
                 ui.moveSelection(-1)
 
-            -- S / Down
             elseif IsDisabledControlJustPressed(0, 33) or IsDisabledControlJustPressed(0, 173) then
+                pending.revertPreview(ui.getOption())
                 navSound()
                 ui.moveSelection(1)
 
-            -- A / Left
             elseif IsDisabledControlJustPressed(0, 34) or IsDisabledControlJustPressed(0, 174) then
                 changeValue(-1)
 
-            -- D / Right
             elseif IsDisabledControlJustPressed(0, 35) or IsDisabledControlJustPressed(0, 175) then
                 changeValue(1)
 
-            -- Enter
             elseif IsDisabledControlJustPressed(0, 201) or IsDisabledControlJustPressed(0, 191) then
                 confirmSelection()
 
-            -- Backspace / Esc
             elseif IsDisabledControlJustPressed(0, 202)
                 or IsDisabledControlJustPressed(0, 177)
                 or IsDisabledControlJustPressed(0, 194)
@@ -256,6 +321,7 @@ local function openCustoms()
 
     vehicle = cache.vehicle
     SetVehicleModKit(vehicle, 0)
+    pending.start()
     startInputLoop()
     startDragCam(vehicle)
     ui.show(buildMainView())
@@ -274,6 +340,8 @@ end)
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= GetCurrentResourceName() then return end
     if ui.isOpen() then
+        pending.restoreBaseline()
+        pending.clear()
         ui.hide()
         inMenu = false
         stopDragCam()

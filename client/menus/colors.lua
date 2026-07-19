@@ -13,7 +13,7 @@ local function xenon()
 
     return {
         type = 'item',
-        icon = 'colors',
+        icon = 'xenon',
         id = 'xenon',
         payType = 'colors',
         label = locale('menus.options.xenon.title'),
@@ -62,7 +62,7 @@ local function pearlescent()
 
     return {
         type = 'item',
-        icon = 'colors',
+        icon = 'pearlescent',
         id = 'pearlescent',
         payType = 'colors',
         label = locale('menus.options.pearlescent'),
@@ -71,7 +71,8 @@ local function pearlescent()
         selected = defaultIndex,
         defaultIndex = defaultIndex,
         set = function(index)
-            SetVehicleExtraColours(vehicle, ids[index], originalWheelColor)
+            local _, wheelColor = GetVehicleExtraColours(vehicle)
+            SetVehicleExtraColours(vehicle, ids[index], wheelColor)
             return originalPearlescent == ids[index], ('%s applied'):format(labels[index])
         end,
         restore = function()
@@ -96,7 +97,7 @@ local function wheelcolor()
 
     return {
         type = 'item',
-        icon = 'colors',
+        icon = 'wheels',
         id = 'wheelcolor',
         payType = 'colors',
         label = locale('menus.options.wheelColor'),
@@ -105,7 +106,8 @@ local function wheelcolor()
         selected = defaultIndex,
         defaultIndex = defaultIndex,
         set = function(index)
-            SetVehicleExtraColours(vehicle, originalPearlescent, ids[index])
+            local pearlescentColor = GetVehicleExtraColours(vehicle)
+            SetVehicleExtraColours(vehicle, pearlescentColor, ids[index])
             return originalWheelColor == ids[index], locale('menus.general.applied', labels[index])
         end,
         restore = function()
@@ -123,7 +125,7 @@ local function windowTint()
 
     return {
         type = 'item',
-        icon = 'colors',
+        icon = 'tint',
         id = 'window_tint',
         payType = 'colors',
         label = locale('menus.options.windowTint.title'),
@@ -156,7 +158,7 @@ local function tyresmoke()
 
     return {
         type = 'item',
-        icon = 'colors',
+        icon = 'smoke',
         id = 'tyre_smoke',
         payType = 'colors',
         label = locale('menus.options.tyreSmoke'),
@@ -192,7 +194,7 @@ local function interior()
 
     return {
         type = 'item',
-        icon = 'colors',
+        icon = 'interior',
         id = 'interior',
         payType = 'colors',
         label = locale('menus.options.interior'),
@@ -245,7 +247,7 @@ local function livery()
 
     return {
         type = 'item',
-        icon = 'colors',
+        icon = 'livery',
         id = 'livery',
         payType = 'colors',
         label = locale('menus.options.livery'),
@@ -282,7 +284,7 @@ local function buildOptions()
         },
         {
             type = 'nav',
-            icon = 'paint',
+            icon = 'palette',
             label = locale('menus.colors.secondary'),
             submenu = 'client.menus.paint',
             submenuArgs = { false },
